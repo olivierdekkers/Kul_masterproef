@@ -11,8 +11,8 @@ public class Output {
 	double leakage2;
 	double totalcostPlayer1;
 	double totalcostPlayer2;
-	double avarageleakageP1;
-	double avarageleakageP2;
+	double playgammap1;
+	double playgammap2;
 	
 	
 	public Output() {
@@ -29,19 +29,19 @@ public class Output {
 		
 	}
 	
-	public Output (ExponentialStrategie player1, ExponentialStrategie player2, double mean1 , double mean2) {
-		playrate1 = player1.getPlayGamma();
-		playrate2 = player2.getPlayGamma();
-		benefit1 = mean1;
-		benefit2 = mean2;
+	public Output (ExponentialStrategie player1, ExponentialStrategie player2) {
+		playrate1 = player1.getAvarageplay();
+		playrate2 = player2.getAvarageplay();
+		benefit1 = player1.getBenefit();
+		benefit2 = player2.getBenefit();
 		cost1 = player1.getCost();
 		cost2 = player2.getCost();
 		leakage1 = player1.getGamma();
 		leakage2 = player2.getGamma();
 		totalcostPlayer1 = player1.getTotalcost();
 		totalcostPlayer2 = player2.getTotalcost();
-		avarageleakageP1 = player1.getAvarageleak();
-		avarageleakageP2 = player2.getAvarageleak();
+		playgammap1 = player1.getPlayGamma();
+		playgammap2 = player2.getPlayGamma();
 	} 
 
 	public double getPlayrate1() {
@@ -123,27 +123,65 @@ public class Output {
 		this.leakage2 = leakage2;
 	}
 
-	public static double getmaxP1(List<Output> outputs) {
+	public static Output getmaxP1(List<Output> outputs) {
 		double max =-Double.MAX_VALUE;
-		double playrate = 0;
+		Output theOutput = new Output();
 		for(Output output : outputs){
-			if((output.getBenefit1()-output.getCost1()/1000000*(1000000*output.getPlayrate1()))>max){
-				max = output.getBenefit1()-output.getCost1()/1000000*(1000000*output.getPlayrate1());
-				playrate = output.getPlayrate1();
+			double temp = (output.getBenefit1()-output.getCost1()/1000000*(1000000/output.getPlayrate1()));
+			if(temp >max){
+				max = temp;
+				theOutput = output;
 			}
 		}
-		return playrate;
+		return theOutput;
 	}
 
-	public static double getmaxP2(List<Output> outputs) {
+	public static Output getmaxP2(List<Output> outputs) {
 		double max =-Double.MAX_VALUE;
-		double playrate = 0;
+		Output theOutput = new Output();
 		for(Output output : outputs){
-			if((output.getBenefit2()-output.getCost2()/1000000*(1000000*output.getPlayrate2()))>max){
-				max =output.getBenefit2()-output.getCost2()/1000000*(1000000*output.getPlayrate2());
-				playrate = output.getPlayrate2();
+			double temp = (output.getBenefit2()-output.getCost2()/1000000*(1000000/output.getPlayrate2()));
+			if(temp>max){
+				max =temp;
+				theOutput = output;
 			}
 		}
-		return playrate;
+		return theOutput;
+	}
+	
+	@Override
+	public String toString() {
+		String string ="";
+		string +="\nbenefitP1: ";
+		string += benefit1;
+
+		string +="\nPlayrateP1: ";
+		string += playrate1;
+
+		string +="\nLeakageP1: ";
+		string += leakage1;
+		
+		string +="\nCostP1: ";
+		string += cost1;
+
+		string +="\nPlaygamma1: ";
+		string += playgammap1;
+		
+		string +="\nbenefitP2: ";
+		string += benefit2;
+
+		string +="\nPlayRateP2: ";
+		string += playrate2;
+
+		string +="\nCostP2: ";
+		string += cost2;
+		
+		string +="\nLeakageP2: ";
+		string += leakage2;
+
+		string +="\nPlaygamma2: ";
+		string += playgammap2;
+		
+		return string;
 	}
 }

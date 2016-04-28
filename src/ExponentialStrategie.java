@@ -26,14 +26,29 @@ public class ExponentialStrategie extends StrategieBase{
 	}
 
 	public double getPlayGamma() {
-		if(getAvarageleak() !=0.0)
-			return (playGamma + 1/getAvarageleak())/2.0;
-		else
-			return playGamma;
+		return playGamma;
+	}
+
+	public ExponentialStrategie(ExponentialStrategie player1,double playgamma) {
+		cost = player1.cost;
+		playGamma = 1/playgamma;
+		nextTimeStamp = 0.0;
+		benefit = 0.0;
+		this.gamma = player1.gamma;
+		calcLeakage();
+	}
+
+	public ExponentialStrategie(ExponentialStrategie player) {
+		cost = player.cost;
+		playGamma = player.playGamma;
+		nextTimeStamp = 0.0;
+		benefit = 0.0;
+		this.gamma = player.gamma;
+		calcLeakage();
 	}
 
 	public void setPlayGamma(double playGamma) {
-		this.playGamma = playGamma;
+		this.playGamma = 1/playGamma;
 	}
 
 	public void setPeriode(int periode) {

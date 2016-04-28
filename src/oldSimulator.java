@@ -1,88 +1,100 @@
 
 
 public class oldSimulator {
-	public void old_simulator(ExponentialStrategie Player1,ExponentialStrategie Player2){ 
-			double player1Mean = 0.0;
-			double player2Mean = 0.0;
-			
-			int numberofsimulations =10000;
-			int simulationTime = 100000;
-			double t = 0.0;
-			int owner = 1;
-			Player1.calcNextTime();
-			Player2.calcNextTime();
-			Player1.calcLeakage();
-			Player2.calcLeakage();
-			for(int Number=0; Number<numberofsimulations; Number++){
-				while(t < simulationTime){
-					if(Player1.getLeakageTime() < Player2.getNextTimeStamp() && Player1.getLeakageTime() < Player1.getNextTimeStamp() ){
-						if(owner==1){
-							Player1.addBenefit(Player1.getLeakageTime()-t);
-						}else{
-							Player2.addBenefit(Player1.getLeakageTime()-t);
-						}
-						owner = 2;
-						t = Player2.getLeakageTime();
-						Player1.calcLeakage();;
-						Player2.applyCost();;
-						
+	public void old_simulator(ExponentialStrategie player1,ExponentialStrategie player2){ 
+		double player1Mean = 0.0;
+		double player2Mean = 0.0;
+		double player1playrate = 0.0;
+		double player2playrate = 0.0;
+		
+		int numberofsimulations =1000;
+		int simulationTime = 1000000;
+		double t = 0.0;
+		int owner = 1;
+		player1.calcNextTime();
+		player2.calcNextTime();
+		player1.calcLeakage();
+		player2.calcLeakage();
+		for(int Number=0; Number<numberofsimulations; Number++){
+			while(t < simulationTime){
+				if(player1.getLeakageTime() < player2.getTimeStamp() && player1.getLeakageTime() < player1.getTimeStamp()){
+					if(owner==1){
+						player1.addBenefit(player1.getLeakageTime()-t);
+						player2.applyCost(t);
+					}else{
+						player2.addBenefit(player1.getLeakageTime()-t);
 					}
-					if(Player2.getLeakageTime() < Player2.getNextTimeStamp()&& Player2.getLeakageTime()< Player1.getNextTimeStamp()){
-						if(owner==1){
-							Player1.addBenefit(Player2.getLeakageTime()-t);
-						}else{
-							Player2.addBenefit(Player2.getLeakageTime()-t);
-						}
-						owner = 1;
-						t= Player2.getLeakageTime();
-						Player2.calcLeakage();
-						Player1.applyCost();
-					}
-					if(Player1.getNextTimeStamp() < Player2.getNextTimeStamp()){
-						if(owner==1){
-							Player1.addBenefit(Player1.getNextTimeStamp()-t);
-						}else{
-							Player2.addBenefit(Player1.getNextTimeStamp()-t);
-						}
-						owner = 1;
-						t = Player1.getNextTimeStamp();
-						Player1.calcNextTime();
-						Player1.applyCost();
-					} else if (Player2.getNextTimeStamp() < Player1.getNextTimeStamp()){
-						if(owner==1){
-							
-							Player1.addBenefit(Player2.getNextTimeStamp()-t);
-						}else {
-							Player2.addBenefit(Player2.getNextTimeStamp()-t);
-						}
-						owner = 2;
-						t = Player2.getNextTimeStamp();
-						Player2.calcNextTime();
-						Player2.applyCost();
-					} else if (Player1.getNextTimeStamp() == Player2.getNextTimeStamp()){
-						if(owner==1){
-							Player1.addBenefit(Player1.getNextTimeStamp()-t);
-						}else{
-							Player2.addBenefit(Player1.getNextTimeStamp()-t);
-						}
-						t = Player1.getNextTimeStamp();
-						Player1.calcNextTime();
-						Player1.applyCost();
-						Player2.calcNextTime();
-						Player2.applyCost();
-					}
+					owner = 2;
+					t = player1.getLeakageTime();
+					player1.calcLeakage();
 				}
-				player1Mean += Player1.benefit/t;
-				player2Mean += Player2.benefit/t;
-				Player1.resset();
-				Player2.resset();
+				if(player2.getLeakageTime() < player2.getTimeStamp() && player2.getLeakageTime() < player1.getTimeStamp() ){
+					if(owner==1){
+						player1.addBenefit(player2.getLeakageTime()-t);
+					}else{
+						player2.addBenefit(player2.getLeakageTime()-t);
+						player1.applyCost(t);
+					}
+					owner = 1;
+					t= player2.getLeakageTime();
+					player2.calcLeakage();
+					//player1.LeakageTimeStamp(t);
+				}
+				if(player1.getTimeStamp() < player2.getTimeStamp() && player1.getTimeStamp() < player1.getLeakageTime() && player1.getTimeStamp() < player2.getLeakageTime()){
+					if(owner==1){
+						player1.addBenefit(player1.getTimeStamp()-t);
+					}else{
+						player2.addBenefit(player1.getTimeStamp()-t);
+					}
+					owner = 1;
+					t = player1.getTimeStamp();
+					player1.calcNextTime();
+					player1.applyCost(t);
+				}
+				if(player2.getTimeStamp() < player1.getTimeStamp() && player2.getTimeStamp() < player1.getLeakageTime() && player2.getTimeStamp() < player2.getLeakageTime()){
+					if(owner==1){
+						
+						player1.addBenefit(player2.getTimeStamp()-t);
+					}else {
+						player2.addBenefit(player2.getTimeStamp()-t);
+					}
+					owner = 2;
+					t = player2.getTimeStamp();
+					player2.calcNextTime();
+					player2.applyCost(t);
+				} else if (player1.getTimeStamp() == player2.getTimeStamp()){
+					if(owner==1){
+						player1.addBenefit(player1.getTimeStamp()-t);
+					}else{
+						player2.addBenefit(player1.getTimeStamp()-t);
+					}
+					t = player1.getTimeStamp();
+					player1.calcNextTime();
+					player1.applyCost(t);
+					player2.calcNextTime();
+					player2.applyCost(t);
+				}
+			}
+				player1Mean += player1.benefit/t;
+				player2Mean += player2.benefit/t;
+				player1playrate += player1.getActualPlayRate();
+				player2playrate += player2.getActualPlayRate();
+				player1.resset();
+				player2.resset();
 				owner = 1;
 				t=0;
-				System.out.println("Player1: " + (player1Mean/numberofsimulations));
-				System.out.println("Player2: " + (player2Mean/numberofsimulations));
 			}
-			System.out.println("Player1: " + (player1Mean/numberofsimulations));
-			System.out.println("Player2: " + (player2Mean/numberofsimulations));
+		player1playrate = player1playrate/numberofsimulations;
+		player2playrate = player2playrate/numberofsimulations;
+		player1Mean = player1Mean/numberofsimulations;
+		player2Mean = player2Mean/numberofsimulations;
+		player1.setBenefit(player1Mean);
+		player2.setBenefit(player2Mean);
+		player1.setAvarageplay(player1playrate);
+		player2.setAvarageplay(player2playrate);
+		Output output = new Output(player1, player2);
+		
+		System.out.println(player1.getAvarageplay());
 	}
 	
 	

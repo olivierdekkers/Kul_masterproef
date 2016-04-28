@@ -32,4 +32,33 @@ public class Input {
 		Player2 = player2;
 	}
 	
+	@Override
+	public String toString() {
+		String string ="";
+		string +="\nbenefitP1: ";
+		string += Player1.getBenefit();
+
+		string +="\nPlayrateP1: ";
+		string += 1/Player1.playGamma;
+
+		string +="\nCostP1: ";
+		string += Player1.getCost();
+
+		string +="\nLeakageP1: ";
+		string += 1/Player1.getGamma();
+
+		string +="\nbenefitP2: ";
+		string += Player2.benefit;
+
+		string +="\nPlayRateP2: ";
+		string += 1/Player2.playGamma;
+
+		string +="\nCostP2: ";
+		string += Player2.getCost();
+
+		string +="\nLeakageP2: ";
+		string += 1/Player2.getGamma();
+		return string;
+	}
+	
 }
