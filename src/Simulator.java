@@ -17,39 +17,27 @@ public class Simulator {
 			
 			FileWriter writer = new FileWriter("temp.csv");
 			create_csv(writer);
-				List<Input> inputs = new LinkedList<Input>();
-				double j = 500;
-				boolean current = true;
-			//	for(int steps = 0 ; steps < 100; steps++){
-					for(double i = 1; i < 1000; i += 1){
-						if(current){
-							ExponentialStrategie Player1 = new ExponentialStrategie(i,200,100);
-							ExponentialStrategie Player2 = new ExponentialStrategie(500,300,0);
-							inputs.add(new Input(Player1,Player2));
-						}
-						else{
-							ExponentialStrategie Player1 = new ExponentialStrategie(j,200,0);
-							ExponentialStrategie Player2 = new ExponentialStrategie(i,300,0);
-							inputs.add(new Input(Player1,Player2));
-						}
+			double i = 800;
+			double j = 800;
+			boolean current = true;
+			//hillclimber.hillclimber(Player1,Player2,writer)
+			for(int steps = 0 ; steps < 100; steps++){
+					if(current){
+						ExponentialStrategie Player1 = new ExponentialStrategie(i,200,0);
+						ExponentialStrategie Player2 = new ExponentialStrategie(j,200,0);
+						i =hillclimber.hillclimber(Player1,Player2,writer);
 					}
-					List<Output> outputs = processInputs(inputs);
-					
-					if(current)
-						j = 1/Output.getmaxP1(outputs);
 					else{
-						j = 1/Output.getmaxP2(outputs);
-						
+						ExponentialStrategie Player1 = new ExponentialStrategie(i,200,0);
+						ExponentialStrategie Player2 = new ExponentialStrategie(j,200,0);
+						j =hillclimber.hillclimber(Player2,Player1,writer);
 					}
-					for(Output output : outputs){
-						//System.out.println(output.avarageleakageP1);
-						add_to_csv(writer,output);
-					}
-
-					System.out.println(j);
-					//current = !current; 
-				//}
-				System.out.println("donezo");
+				current = !current; 
+				System.out.println("step " + steps);
+				System.out.println("i " + i);
+				System.out.println("j " + j);
+			}
+			System.out.println("donezo");
 			close_writer(writer);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -97,13 +85,13 @@ public class Simulator {
 			} 
 	    }
 	
-	private static void add_to_csv(FileWriter writer, Output output){
+	public static void add_to_csv(FileWriter writer, Output output){
 		try {
 			writer.append(""+output.benefit1);
 			writer.append(',');
 		    writer.append(""+output.cost1);
 		    writer.append(',');
-		    writer.append(""+1/output.playrate1);
+		    writer.append(""+output.playrate1);
 		    writer.append(',');
 		    if(output.leakage1 !=0)
 		    	writer.append(""+1/output.leakage1);
@@ -115,7 +103,7 @@ public class Simulator {
 		    writer.append(',');
 		    writer.append(""+output.cost2);
 		    writer.append(',');
-		    writer.append(""+1/output.playrate2);
+		    writer.append(""+output.playrate2);
 		    writer.append(',');
 		    if(output.leakage2 !=0)
 		    	writer.append(""+1/output.leakage2);
@@ -140,9 +128,11 @@ public class Simulator {
 	public static Output simulate(ExponentialStrategie player1,ExponentialStrategie player2){
 		double player1Mean = 0.0;
 		double player2Mean = 0.0;
+		double player1playrate = 0.0;
+		double player2playrate = 0.0;
 		
-		int numberofsimulations =10000;
-		int simulationTime = 1000000;
+		int numberofsimulations =500;
+		int simulationTime = 100000;
 		double t = 0.0;
 		int owner = 1;
 		player1.calcNextTime();
@@ -154,9 +144,7 @@ public class Simulator {
 				if(player1.getLeakageTime() < player2.getTimeStamp() && player1.getLeakageTime() < player1.getTimeStamp()){
 					if(owner==1){
 						player1.addBenefit(player1.getLeakageTime()-t);
-						player2.applyCost();
-						player2.Leak(t);
-						
+						player2.applyCost(t);
 					}else{
 						player2.addBenefit(player1.getLeakageTime()-t);
 					}
@@ -164,18 +152,27 @@ public class Simulator {
 					t = player1.getLeakageTime();
 					player1.calcLeakage();
 				}
-				if(player2.getLeakageTime() < player2.getTimeStamp() && player2.getLeakageTime() < player1.getTimeStamp() ){
+				else if(player2.getLeakageTime() < player2.getTimeStamp() && player2.getLeakageTime() < player1.getTimeStamp() ){
 					if(owner==1){
 						player1.addBenefit(player2.getLeakageTime()-t);
 					}else{
 						player2.addBenefit(player2.getLeakageTime()-t);
-						player1.applyCost();
-						player1.Leak(t);
+						player1.applyCost(t);
 					}
 					owner = 1;
 					t= player2.getLeakageTime();
 					player2.calcLeakage();
-					//player1.LeakageTimeStamp(t);
+				}else if (player1.getLeakageTime() == player2.getLeakageTime() && player1.getLeakageTime() < player1.getTimeStamp() && player2.getTimeStamp() > player1.getLeakageTime()) {
+					if(owner==1){
+						player1.addBenefit(player1.getTimeStamp()-t);
+					}else{
+						player2.addBenefit(player1.getTimeStamp()-t);
+					}
+					t = player1.getTimeStamp();
+					player1.calcNextTime();
+					player1.applyCost(t);
+					player2.calcNextTime();
+					player2.applyCost(t);
 				}
 				if(player1.getTimeStamp() < player2.getTimeStamp() && player1.getTimeStamp() < player1.getLeakageTime() && player1.getTimeStamp() < player2.getLeakageTime()){
 					if(owner==1){
@@ -186,11 +183,10 @@ public class Simulator {
 					owner = 1;
 					t = player1.getTimeStamp();
 					player1.calcNextTime();
-					player1.applyCost();
+					player1.applyCost(t);
 				}
-				if(player2.getTimeStamp() < player1.getTimeStamp() && player2.getTimeStamp() < player1.getLeakageTime() && player2.getTimeStamp() < player2.getLeakageTime()){
+				else if(player2.getTimeStamp() < player1.getTimeStamp() && player2.getTimeStamp() < player1.getLeakageTime() && player2.getTimeStamp() < player2.getLeakageTime()){
 					if(owner==1){
-						
 						player1.addBenefit(player2.getTimeStamp()-t);
 					}else {
 						player2.addBenefit(player2.getTimeStamp()-t);
@@ -198,8 +194,8 @@ public class Simulator {
 					owner = 2;
 					t = player2.getTimeStamp();
 					player2.calcNextTime();
-					player2.applyCost();
-				} else if (player1.getTimeStamp() == player2.getTimeStamp()){
+					player2.applyCost(t);
+				} else if (player1.getTimeStamp() == player2.getTimeStamp() && player1.getTimeStamp()< player1.getLeakageTime() && player1.getTimeStamp() < player2.getLeakageTime()){
 					if(owner==1){
 						player1.addBenefit(player1.getTimeStamp()-t);
 					}else{
@@ -207,19 +203,30 @@ public class Simulator {
 					}
 					t = player1.getTimeStamp();
 					player1.calcNextTime();
-					player1.applyCost();
+					player1.applyCost(t);
 					player2.calcNextTime();
-					player2.applyCost();
-				}
+					player2.applyCost(t);
+				} 
 			}
-			player1Mean = player1Mean +  player1.benefit/t;
-			player2Mean += player2.benefit/t;
-		}
-		player1Mean = player1Mean /numberofsimulations;
-		player2Mean = player2Mean / numberofsimulations;
-		Output output = new Output(player1, player2,player1Mean,player2Mean);
+				player1Mean += player1.benefit/t;
+				player2Mean += player2.benefit/t;
+				player1playrate += player1.getActualPlayRate();
+				player2playrate += player2.getActualPlayRate();
+				player1.resset();
+				player2.resset();
+				owner = 1;
+				t=0;
+			}
+		player1playrate = player1playrate/numberofsimulations;
+		player2playrate = player2playrate/numberofsimulations;
+		player1Mean = player1Mean/numberofsimulations;
+		player2Mean = player2Mean/numberofsimulations;
+		player1.setBenefit(player1Mean);
+		player2.setBenefit(player2Mean);
+		player1.setAvarageplay(player1playrate);
+		player2.setAvarageplay(player2playrate);
+		Output output = new Output(player1, player2);
 		return output;
-		
 	}
 	
 	
@@ -250,6 +257,8 @@ public class Simulator {
 	    }
 	    return outputs;
 	}
+	
+	
+	
 }
-
 
